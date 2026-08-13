@@ -1,0 +1,110 @@
+-- =======================================================
+-- LURAPH AUTO-DUMP & COPY UI TOOL
+-- =======================================================
+
+local original_load = loadstring or load
+local captured_code = ""
+
+-- Hàm tạo Giao diện (UI) hiển thị Source Code kèm nút COPY
+local function createCopyUI(sourceText)
+    -- Xóa UI cũ nếu đã tồn tại
+    if game:GetService("CoreGui"):FindFirstChild("DeobfuscatorUI") then
+        game:GetService("CoreGui").DeobfuscatorUI:Destroy()
+    end
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "DeobfuscatorUI"
+    ScreenGui.Parent = game:GetService("CoreGui")
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 500, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 35)
+    Title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Title.Text = "  SOURCE CODE ĐÃ GIẢI MÃ"
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 16
+    Title.Parent = MainFrame
+
+    local Scroll = Instance.new("ScrollingFrame")
+    Scroll.Size = UDim2.new(1, -20, 1, -90)
+    Scroll.Position = UDim2.new(0, 10, 0, 45)
+    Scroll.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Scroll.CanvasSize = UDim2.new(0, 0, 5, 0)
+    Scroll.Parent = MainFrame
+
+    local TextBox = Instance.new("TextBox")
+    TextBox.Size = UDim2.new(1, -10, 1, 0)
+    TextBox.Position = UDim2.new(0, 5, 0, 0)
+    TextBox.BackgroundTransparency = 1
+    TextBox.Text = sourceText
+    TextBox.TextColor3 = Color3.fromRGB(0, 255, 127)
+    TextBox.TextXAlignment = Enum.TextXAlignment.Left
+    TextBox.TextYAlignment = Enum.TextYAlignment.Top
+    TextBox.ClearTextOnFocus = false
+    TextBox.MultiLine = true
+    TextBox.TextWrapped = true
+    TextBox.Font = Enum.Font.Code
+    TextBox.TextSize = 13
+    TextBox.Parent = Scroll
+
+    -- Nút COPY
+    local CopyBtn = Instance.new("TextButton")
+    CopyBtn.Size = UDim2.new(0, 120, 0, 30)
+    CopyBtn.Position = UDim2.new(1, -130, 1, -38)
+    CopyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    CopyBtn.Text = "COPY SCRIPT"
+    CopyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CopyBtn.Font = Enum.Font.SourceSansBold
+    CopyBtn.TextSize = 14
+    CopyBtn.Parent = MainFrame
+
+    CopyBtn.MouseButton1Click:Connect(function()
+        if setclipboard then
+            setclipboard(sourceText)
+            CopyBtn.Text = "ĐÃ COPY! ✓"
+            CopyBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+            task.wait(2)
+            CopyBtn.Text = "COPY SCRIPT"
+            CopyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        else
+            CopyBtn.Text = "Hãy copy thủ công!"
+        end
+    end)
+end
+
+-- Hook hệ thống giải mã
+local function hooked_load(code, chunkname, mode, env)
+    if typeof(code) == "string" and #code > 10 then
+        captured_code = code
+        task.spawn(function()
+            createCopyUI(captured_code)
+        end)
+    end
+    return original_load(code, chunkname, mode, env)
+end
+
+if getgenv then
+    getgenv().loadstring = hooked_load
+    getgenv().load = hooked_load
+else
+    _G.loadstring = hooked_load
+    _G.load = hooked_load
+end
+
+print("[✓] Hook đã kích hoạt. Đang tải script...")
+
+-- =======================================================
+-- ĐOẠN SCRIPT CẦN THỰC THI NẰM Ở ĐÂY
+-- =======================================================
+script_key = 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/BloxFruits.luau"))()
