@@ -1,0 +1,42 @@
+    ["Auto Summon Rip Indra"] = true,
+    ["Select Hop"] = {
+        ["Hop Server If Have Player Near"] = false, 
+        ["Hop Find Rip Indra Get Valkyrie Helm or Get Tushita"] = true, 
+        ["Hop Find Dough King Get Mirror Fractal"] = false,
+        ["Hop Find Raids Castle [CDK]"] = true,
+        ["Hop Find Cake Queen [CDK]"] = true,
+        ["Hop Find Soul Reaper [CDK]"] = true,
+        ["Hop Find Darkbeard [SG]"] = true,
+        ["Hop Find Mirage [ Pull Lever ]"] = false,
+    },
+    ["Farm Mastery"] = {
+        ["Melee"] = false,
+        ["Sword"] = false,
+    },
+    ["Buy Haki"] = {
+        ["Enhancement"] = true,
+        ["Skyjump"] = true,
+        ["Flash Step"] = true,
+        ["Observation"] = true,
+    },
+    ["Sniper Fruit Shop"] = {
+        ["Enabled"] = true,
+        ["Fruit"] = {"Leopard-Leopard","Kitsune-Kitsune","Dragon-Dragon","Yeti-Yeti","Gas-Gas"},
+    },
+    ["Lock Fruit"] = {},
+    ["Webhook"] = {
+        ["Enabled"] = false,
+        ["WebhookUrl"] = "",
+    }
+}
+
+getgenv().MyCustomScript = {
+    ["Status Tracker"] = true,
+    ["WebhookUrl"] = (getgenv().SettingFarm and getgenv().SettingFarm["Webhook"] and getgenv().SettingFarm["Webhook"]["WebhookUrl"]) or "",
+    ["Auto Spawn Dough King"] = true,
+    ["Auto Vip Item"] = true,
+    ["Bosato Premium Key"] = "tự tìm nhe =)) tìm đc có quà",
+    ["Banana Cat"] = true
+}
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/bosatoscriptcre/script/refs/heads/main/bosatoupdbnnv1.0"))()
