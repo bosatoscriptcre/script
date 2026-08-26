@@ -1,17 +1,140 @@
--- DOORS Endless Farm + Auto Avoid Rush & Ambush
+-- DOORS Endless Auto Farm + Full GUI Menu
 local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- Cấu hình mặc định
 local Config = {
-    AutoFarm = true,
-    FlySpeed = 55,
-    DelayAction = 0.08,
-    IsHiding = false
+    AutoFarm = false,
+    FlySpeed = 50,
+    DelayAction = 0.15,
+    IsHiding = false,
+    AutoHide = true
 }
 
--- Hàm tương tác ProximityPrompt
+-- ==================== TẠO GIAO DIỆN MENU (GUI) ====================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DoorsFarmGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 220, 0, 260)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Cho phép kéo thả menu
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "🚪 DOORS FARM MENU"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 14
+Title.Font = Enum.Font.SourceSansBold
+Title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Title.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+-- Nút Toggle Auto Farm
+local ToggleFarmBtn = Instance.new("TextButton")
+ToggleFarmBtn.Size = UDim2.new(0.85, 0, 0, 35)
+ToggleFarmBtn.Position = UDim2.new(0.075, 0, 0.2, 0)
+ToggleFarmBtn.Text = "Auto Farm: OFF"
+ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+ToggleFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleFarmBtn.Font = Enum.Font.SourceSansBold
+ToggleFarmBtn.TextSize = 14
+ToggleFarmBtn.Parent = MainFrame
+
+-- Nút Toggle Auto Trốn Quái
+local ToggleHideBtn = Instance.new("TextButton")
+ToggleHideBtn.Size = UDim2.new(0.85, 0, 0, 35)
+ToggleHideBtn.Position = UDim2.new(0.075, 0, 0.38, 0)
+ToggleHideBtn.Text = "Auto Trốn Rush/Ambush: ON"
+ToggleHideBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+ToggleHideBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleHideBtn.Font = Enum.Font.SourceSansBold
+ToggleHideBtn.TextSize = 13
+ToggleHideBtn.Parent = MainFrame
+
+-- Nút Chỉnh Tốc Độ Bay
+local SpeedBtn = Instance.new("TextButton")
+SpeedBtn.Size = UDim2.new(0.85, 0, 0, 35)
+SpeedBtn.Position = UDim2.new(0.075, 0, 0.56, 0)
+SpeedBtn.Text = "Tốc độ bay: " .. Config.FlySpeed
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.Font = Enum.Font.SourceSans
+SpeedBtn.TextSize = 14
+SpeedBtn.Parent = MainFrame
+
+-- Nút Bật/Tắt Menu (Ẩn)
+local HideMenuBtn = Instance.new("TextButton")
+HideMenuBtn.Size = UDim2.new(0.85, 0, 0, 30)
+HideMenuBtn.Position = UDim2.new(0.075, 0, 0.8, 0)
+HideMenuBtn.Text = "Thu gọn Menu"
+HideMenuBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+HideMenuBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+HideMenuBtn.Font = Enum.Font.SourceSans
+HideMenuBtn.TextSize = 12
+HideMenuBtn.Parent = MainFrame
+
+-- ==================== SỰ KIỆN MENU ====================
+ToggleFarmBtn.MouseButton1Click:Connect(function()
+    Config.AutoFarm = not Config.AutoFarm
+    if Config.AutoFarm then
+        ToggleFarmBtn.Text = "Auto Farm: ON"
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+    else
+        ToggleFarmBtn.Text = "Auto Farm: OFF"
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    end
+end)
+
+ToggleHideBtn.MouseButton1Click:Connect(function()
+    Config.AutoHide = not Config.AutoHide
+    if Config.AutoHide then
+        ToggleHideBtn.Text = "Auto Trốn Rush/Ambush: ON"
+        ToggleHideBtn.BackgroundColor3 = Color3.fromRGB(50, 180, 50)
+    else
+        ToggleHideBtn.Text = "Auto Trốn Rush/Ambush: OFF"
+        ToggleHideBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    end
+end)
+
+SpeedBtn.MouseButton1Click:Connect(function()
+    if Config.FlySpeed == 50 then
+        Config.FlySpeed = 70
+    elseif Config.FlySpeed == 70 then
+        Config.FlySpeed = 35
+    else
+        Config.FlySpeed = 50
+    end
+    SpeedBtn.Text = "Tốc độ bay: " .. Config.FlySpeed
+end)
+
+-- ==================== CHỨC NĂNG GAME ====================
+local function sendNotification(title, text, duration)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = duration or 3
+        })
+    end)
+end
+
 local function interact(prompt)
     if prompt and prompt:IsA("ProximityPrompt") then
         prompt.MaxActivationDistance = 25
@@ -20,14 +143,13 @@ local function interact(prompt)
     end
 end
 
--- Bay thẳng đến vị trí mục tiêu
 local function flyTo(targetCFrame)
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return end
     
     local hrp = char.HumanoidRootPart
     local distance = (hrp.Position - targetCFrame.Position).Magnitude
-    local duration = distance / Config.FlySpeed
+    local duration = math.clamp(distance / Config.FlySpeed, 0.2, 3)
     
     for _, part in pairs(char:GetDescendants()) do
         if part:IsA("BasePart") then part.CanCollide = false end
@@ -38,7 +160,20 @@ local function flyTo(targetCFrame)
     tween.Completed:Wait()
 end
 
--- Lấy phòng hiện tại
+local function equipKey()
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    local char = LocalPlayer.Character
+    if not backpack or not char then return end
+
+    for _, tool in pairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") and (tool.Name == "Key" or string.find(tool.Name, "Key")) then
+            tool.Parent = char
+            task.wait(0.1)
+            break
+        end
+    end
+end
+
 local function getCurrentRoom()
     local currentRooms = Workspace:FindFirstChild("CurrentRooms")
     if not currentRooms then return nil end
@@ -55,42 +190,39 @@ end
 
 -- TRỐN RUSH / AMBUSH
 local function hideFromEntity()
+    if not Config.AutoHide then return end
     Config.IsHiding = true
     local room = getCurrentRoom()
     if not room then return end
     
-    -- Tìm Wardrobe / Closet gần nhất để trốn
-    local closet = nil
     for _, obj in pairs(room:GetDescendants()) do
         if obj.Name == "Wardrobe" or string.find(obj.Name, "Closet") then
-            closet = obj
-            break
-        end
-    end
-    
-    if closet then
-        local prompt = closet:FindFirstChildOfClass("ProximityPrompt")
-        local mainPart = closet:FindFirstChildWhichIsA("BasePart")
-        if prompt and mainPart then
-            flyTo(mainPart.CFrame * CFrame.new(0, 0, -2))
-            interact(prompt)
+            local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
+            local mainPart = obj:FindFirstChildWhichIsA("BasePart")
+            if prompt and mainPart then
+                flyTo(mainPart.CFrame * CFrame.new(0, 0, -2))
+                interact(prompt)
+                break
+            end
         end
     end
 end
 
--- PHÁT HIỆN RUSH HOẶC AMBUSH XUẤT HIỆN
 Workspace.ChildAdded:Connect(function(child)
-    if child.Name == "RushMoving" or child.Name == "AmbushMoving" then
+    if child.Name == "RushMoving" then
+        sendNotification("⚠️ CẢNH BÁO", "Rush xuất hiện!", 3)
         hideFromEntity()
-        
-        -- Chờ cho đến khi Rush/Ambush biến mất khỏi Workspace
-        repeat
-            task.wait(0.5)
-        until not Workspace:FindFirstChild("RushMoving") and not Workspace:FindFirstChild("AmbushMoving")
-        
-        task.wait(1) -- Chờ an toàn thêm 1s
-        
-        -- Chui ra khỏi tủ (nhấn nhảy/nhấp lại prompt)
+        repeat task.wait(0.5) until not Workspace:FindFirstChild("RushMoving")
+        task.wait(1)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.Jump = true
+        end
+        Config.IsHiding = false
+    elseif child.Name == "AmbushMoving" then
+        sendNotification("🚨 CẢNH BÁO", "Ambush xuất hiện!", 3)
+        hideFromEntity()
+        repeat task.wait(0.5) until not Workspace:FindFirstChild("AmbushMoving")
+        task.wait(1.5)
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
             LocalPlayer.Character.Humanoid.Jump = true
         end
@@ -98,42 +230,61 @@ Workspace.ChildAdded:Connect(function(child)
     end
 end)
 
--- VÒNG LẶP FARM CHÍNH
+-- VÒNG LẶP AUTO FARM CHÍNH
+local lastProcessedRoom = nil
+
 task.spawn(function()
-    while Config.AutoFarm do
-        task.wait(0.2)
+    while true do
+        task.wait(0.3)
         
-        -- Nếu đang trốn Rush/Ambush thì tạm dừng farm
-        if not Config.IsHiding then
+        if Config.AutoFarm and not Config.IsHiding then
             local room = getCurrentRoom()
-            if room then
-                -- 1. Quét mở tủ lấy Gold
+            
+            if room and room ~= lastProcessedRoom then
+                task.wait(0.3) -- Đợi load dữ liệu phòng
+                
+                -- BƯỚC 1: LỤC SẠCH TỦ LẤY GOLD
+                local drawers = {}
                 for _, obj in pairs(room:GetDescendants()) do
-                    if Config.IsHiding then break end
                     if string.find(obj.Name, "Drawer") or obj.Name == "Gold" or obj.Name == "CoinStack" then
-                        local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
+                        table.insert(drawers, obj)
+                    end
+                end
+
+                for _, drawer in ipairs(drawers) do
+                    if Config.IsHiding or not Config.AutoFarm then break end
+                    local prompt = drawer:FindFirstChildOfClass("ProximityPrompt")
+                    if prompt then
                         pcall(interact, prompt)
                     end
                 end
 
-                -- 2. Nhặt Chìa khóa
+                -- BƯỚC 2: TÌM & NHẶT CHÌA KHÓA
                 for _, obj in pairs(room:GetDescendants()) do
-                    if Config.IsHiding then break end
+                    if Config.IsHiding or not Config.AutoFarm then break end
                     if obj.Name == "Key" or string.find(obj.Name, "Key") then
                         local prompt = obj:FindFirstChildOfClass("ProximityPrompt") or obj:FindFirstChild("ModulePrompt")
-                        pcall(interact, prompt)
+                        local keyPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                        if keyPart and prompt then
+                            pcall(flyTo, keyPart.CFrame)
+                            pcall(interact, prompt)
+                        end
                     end
                 end
 
-                -- 3. Đâm vèo vèo mở cửa
-                if not Config.IsHiding then
+                -- BƯỚC 3: CẦM CHÌA KHÓA VÀ ĐÂM CỬA MỞ PHÒNG
+                if not Config.IsHiding and Config.AutoFarm then
+                    equipKey()
+                    
                     local door = room:FindFirstChild("Door")
                     if door then
                         local prompt = door:FindFirstChildOfClass("ProximityPrompt")
                         local doorPart = door:FindFirstChild("Door") or door:FindFirstChildWhichIsA("BasePart")
-                        if doorPart then
+                        
+                        if doorPart and prompt then
                             pcall(flyTo, doorPart.CFrame * CFrame.new(0, 0, -2))
                             pcall(interact, prompt)
+                            lastProcessedRoom = room
                         end
                     end
                 end
