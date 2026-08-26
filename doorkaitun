@@ -1,0 +1,143 @@
+-- DOORS Endless Farm + Auto Avoid Rush & Ambush
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Config = {
+    AutoFarm = true,
+    FlySpeed = 55,
+    DelayAction = 0.08,
+    IsHiding = false
+}
+
+-- Hàm tương tác ProximityPrompt
+local function interact(prompt)
+    if prompt and prompt:IsA("ProximityPrompt") then
+        prompt.MaxActivationDistance = 25
+        fireproximityprompt(prompt)
+        task.wait(Config.DelayAction)
+    end
+end
+
+-- Bay thẳng đến vị trí mục tiêu
+local function flyTo(targetCFrame)
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local hrp = char.HumanoidRootPart
+    local distance = (hrp.Position - targetCFrame.Position).Magnitude
+    local duration = distance / Config.FlySpeed
+    
+    for _, part in pairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then part.CanCollide = false end
+    end
+    
+    local tween = TweenService:Create(hrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Lấy phòng hiện tại
+local function getCurrentRoom()
+    local currentRooms = Workspace:FindFirstChild("CurrentRooms")
+    if not currentRooms then return nil end
+    local latestRoom, maxNum = nil, -1
+    for _, room in pairs(currentRooms:GetChildren()) do
+        local num = tonumber(room.Name)
+        if num and num > maxNum then
+            maxNum = num
+            latestRoom = room
+        end
+    end
+    return latestRoom
+end
+
+-- TRỐN RUSH / AMBUSH
+local function hideFromEntity()
+    Config.IsHiding = true
+    local room = getCurrentRoom()
+    if not room then return end
+    
+    -- Tìm Wardrobe / Closet gần nhất để trốn
+    local closet = nil
+    for _, obj in pairs(room:GetDescendants()) do
+        if obj.Name == "Wardrobe" or string.find(obj.Name, "Closet") then
+            closet = obj
+            break
+        end
+    end
+    
+    if closet then
+        local prompt = closet:FindFirstChildOfClass("ProximityPrompt")
+        local mainPart = closet:FindFirstChildWhichIsA("BasePart")
+        if prompt and mainPart then
+            flyTo(mainPart.CFrame * CFrame.new(0, 0, -2))
+            interact(prompt)
+        end
+    end
+end
+
+-- PHÁT HIỆN RUSH HOẶC AMBUSH XUẤT HIỆN
+Workspace.ChildAdded:Connect(function(child)
+    if child.Name == "RushMoving" or child.Name == "AmbushMoving" then
+        hideFromEntity()
+        
+        -- Chờ cho đến khi Rush/Ambush biến mất khỏi Workspace
+        repeat
+            task.wait(0.5)
+        until not Workspace:FindFirstChild("RushMoving") and not Workspace:FindFirstChild("AmbushMoving")
+        
+        task.wait(1) -- Chờ an toàn thêm 1s
+        
+        -- Chui ra khỏi tủ (nhấn nhảy/nhấp lại prompt)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.Jump = true
+        end
+        Config.IsHiding = false
+    end
+end)
+
+-- VÒNG LẶP FARM CHÍNH
+task.spawn(function()
+    while Config.AutoFarm do
+        task.wait(0.2)
+        
+        -- Nếu đang trốn Rush/Ambush thì tạm dừng farm
+        if not Config.IsHiding then
+            local room = getCurrentRoom()
+            if room then
+                -- 1. Quét mở tủ lấy Gold
+                for _, obj in pairs(room:GetDescendants()) do
+                    if Config.IsHiding then break end
+                    if string.find(obj.Name, "Drawer") or obj.Name == "Gold" or obj.Name == "CoinStack" then
+                        local prompt = obj:FindFirstChildOfClass("ProximityPrompt")
+                        pcall(interact, prompt)
+                    end
+                end
+
+                -- 2. Nhặt Chìa khóa
+                for _, obj in pairs(room:GetDescendants()) do
+                    if Config.IsHiding then break end
+                    if obj.Name == "Key" or string.find(obj.Name, "Key") then
+                        local prompt = obj:FindFirstChildOfClass("ProximityPrompt") or obj:FindFirstChild("ModulePrompt")
+                        pcall(interact, prompt)
+                    end
+                end
+
+                -- 3. Đâm vèo vèo mở cửa
+                if not Config.IsHiding then
+                    local door = room:FindFirstChild("Door")
+                    if door then
+                        local prompt = door:FindFirstChildOfClass("ProximityPrompt")
+                        local doorPart = door:FindFirstChild("Door") or door:FindFirstChildWhichIsA("BasePart")
+                        if doorPart then
+                            pcall(flyTo, doorPart.CFrame * CFrame.new(0, 0, -2))
+                            pcall(interact, prompt)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
